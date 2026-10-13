@@ -1,0 +1,105 @@
+@page
+@model ClinicManagement.Web.Pages.Admin.DoctorRegistrationFormModel
+@{
+    ViewData["Title"] = "Doctor Registration";
+    Layout = "_AdminLayout";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="fas fa-user-md me-2"></i>Doctor Registration Form</h4>
+            </div>
+            <div class="card-body">
+                @if (!string.IsNullOrEmpty(Model.Message))
+                {
+                    <div class="alert @(Model.IsSuccess ? "alert-success" : "alert-danger") alert-dismissible fade show">
+                        @Model.Message
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+
+                <form method="post">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="Name" class="form-label">Full Name *</label>
+                            <input type="text" class="form-control" id="Name" name="Name" required maxlength="30" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="Email" class="form-label">Email Address *</label>
+                            <input type="email" class="form-control" id="Email" name="Email" required maxlength="30" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="Password" class="form-label">Password *</label>
+                            <input type="password" class="form-control" id="Password" name="Password" required maxlength="30" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="BirthDate" class="form-label">Birth Date *</label>
+                            <input type="date" class="form-control" id="BirthDate" name="BirthDate" required />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="Department" class="form-label">Department *</label>
+                            <select class="form-select" id="Department" name="Department" required>
+                                <option value="0">Select Department</option>
+                                @foreach (var dept in Model.Departments)
+                                {
+                                    <option value="@dept.DeptNo">@dept.DeptName</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="Phone" class="form-label">Phone Number *</label>
+                            <input type="tel" class="form-control" id="Phone" name="Phone" required maxlength="30" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="Address" class="form-label">Address *</label>
+                            <input type="text" class="form-control" id="Address" name="Address" required maxlength="30" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Gender *</label>
+                            <div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="Gender" id="genderM" value="M" required />
+                                    <label class="form-check-label" for="genderM">Male</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="Gender" id="genderF" value="F" />
+                                    <label class="form-check-label" for="genderF">Female</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="Experience" class="form-label">Experience (years) *</label>
+                            <input type="number" class="form-control" id="Experience" name="Experience" required min="0" />
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="Salary" class="form-label">Salary *</label>
+                            <input type="number" class="form-control" id="Salary" name="Salary" required min="0" />
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="ChargesPerVisit" class="form-label">Charges Per Visit *</label>
+                            <input type="number" class="form-control" id="ChargesPerVisit" name="ChargesPerVisit" required min="0" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="Specialization" class="form-label">Specialization *</label>
+                            <input type="text" class="form-control" id="Specialization" name="Specialization" required maxlength="50" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="Qualification" class="form-label">Qualification *</label>
+                            <input type="text" class="form-control" id="Qualification" name="Qualification" required maxlength="100" />
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Register Doctor
+                        </button>
+                        <a href="/Admin/AdminHome" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Back
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

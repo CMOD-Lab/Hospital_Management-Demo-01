@@ -1,0 +1,117 @@
+@page
+@model ClinicManagement.Web.Pages.SignUpModel
+@{
+    ViewData["Title"] = "Login / Sign Up";
+    Layout = "_Layout";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="text-center mb-4">
+            <h1 class="display-4 text-primary">
+                <i class="fas fa-hospital-alt me-2"></i>Clinic Management System
+            </h1>
+            <p class="lead text-muted">Your health, our priority</p>
+        </div>
+
+        <div class="row">
+            <!-- Login Form -->
+            <div class="col-md-6">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0"><i class="fas fa-sign-in-alt me-2"></i>Login</h4>
+                    </div>
+                    <div class="card-body">
+                        @if (!string.IsNullOrEmpty(Model.LoginMessage))
+                        {
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                @Model.LoginMessage
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        }
+                        <form method="post" asp-page-handler="Login">
+                            <div class="mb-3">
+                                <label for="loginEmail" class="form-label">Email Address</label>
+                                <input type="email" class="form-control" id="loginEmail" name="loginEmail"
+                                       placeholder="Enter your email" required />
+                            </div>
+                            <div class="mb-3">
+                                <label for="loginPassword" class="form-label">Password</label>
+                                <input type="password" class="form-control" id="loginPassword" name="loginPassword"
+                                       placeholder="Enter your password" required />
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-sign-in-alt me-2"></i>Login
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sign Up Form -->
+            <div class="col-md-6">
+                <div class="card shadow">
+                    <div class="card-header bg-success text-white">
+                        <h4 class="mb-0"><i class="fas fa-user-plus me-2"></i>Patient Registration</h4>
+                    </div>
+                    <div class="card-body">
+                        @if (!string.IsNullOrEmpty(Model.SignupMessage))
+                        {
+                            <div class="alert @(Model.SignupSuccess ? "alert-success" : "alert-danger") alert-dismissible fade show" role="alert">
+                                @Model.SignupMessage
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        }
+                        <form method="post" asp-page-handler="Signup">
+                            <div class="mb-2">
+                                <label for="sName" class="form-label">Full Name</label>
+                                <input type="text" class="form-control" id="sName" name="sName"
+                                       placeholder="Enter your full name" required maxlength="20" />
+                            </div>
+                            <div class="mb-2">
+                                <label for="sBirthDate" class="form-label">Birth Date</label>
+                                <input type="date" class="form-control" id="sBirthDate" name="sBirthDate" required />
+                            </div>
+                            <div class="mb-2">
+                                <label for="sEmail" class="form-label">Email Address</label>
+                                <input type="email" class="form-control" id="sEmail" name="sEmail"
+                                       placeholder="Enter your email" required maxlength="30" />
+                            </div>
+                            <div class="mb-2">
+                                <label for="sPassword" class="form-label">Password</label>
+                                <input type="password" class="form-control" id="sPassword" name="sPassword"
+                                       placeholder="Create a password" required maxlength="20" />
+                            </div>
+                            <div class="mb-2">
+                                <label for="sPhone" class="form-label">Phone Number</label>
+                                <input type="tel" class="form-control" id="sPhone" name="sPhone"
+                                       placeholder="Enter phone number" required maxlength="15" />
+                            </div>
+                            <div class="mb-2">
+                                <label for="sAddress" class="form-label">Address</label>
+                                <input type="text" class="form-control" id="sAddress" name="sAddress"
+                                       placeholder="Enter your address" required maxlength="40" />
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label">Gender</label>
+                                <div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="sGender" id="genderM" value="M" required />
+                                        <label class="form-check-label" for="genderM">Male</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="sGender" id="genderF" value="F" />
+                                        <label class="form-check-label" for="genderF">Female</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-success w-100">
+                                <i class="fas fa-user-plus me-2"></i>Register
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,56 @@
+@page
+@model ClinicManagement.Web.Pages.Patient.CurrentAppointmentModel
+@{
+    ViewData["Title"] = "Current Appointment";
+    Layout = "_PatientLayout";
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <h2><i class="fas fa-calendar-check me-2"></i>Current Appointment</h2>
+        <hr />
+    </div>
+</div>
+
+@if (Model.Appointment != null)
+{
+    <div class="card shadow">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0"><i class="fas fa-calendar-check me-2"></i>Active Appointment</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Doctor:</strong> @(Model.Appointment.Doctor?.Name ?? "N/A")</p>
+                    <p><strong>Timings:</strong> @Model.Appointment.Timings</p>
+                    <p><strong>Date:</strong> @Model.Appointment.AppointmentDate.ToString("yyyy-MM-dd")</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Status:</strong>
+                        @if (Model.Appointment.IsApproved)
+                        {
+                            <span class="badge bg-success">Approved</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-warning">Pending Approval</span>
+                        }
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="card shadow">
+        <div class="card-body text-center py-5">
+            <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">No current appointment</h5>
+            <p class="text-muted">You don't have any active appointments at the moment.</p>
+            <a href="/Patient/ViewDoctors" class="btn btn-primary">
+                <i class="fas fa-calendar-plus me-2"></i>Book an Appointment
+            </a>
+        </div>
+    </div>
+}

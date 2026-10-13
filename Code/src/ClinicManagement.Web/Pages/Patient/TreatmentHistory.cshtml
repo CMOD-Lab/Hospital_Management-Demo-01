@@ -1,0 +1,51 @@
+@page
+@model ClinicManagement.Web.Pages.Patient.TreatmentHistoryModel
+@{
+    ViewData["Title"] = "Treatment History";
+    Layout = "_PatientLayout";
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <h2><i class="fas fa-history me-2"></i>Treatment History</h2>
+        <hr />
+    </div>
+</div>
+
+<div class="card shadow">
+    <div class="card-body">
+        @if (Model.Appointments.Any())
+        {
+            <table class="table table-striped table-hover">
+                <thead class="table-info">
+                    <tr>
+                        <th>Appointment ID</th>
+                        <th>Doctor</th>
+                        <th>Disease</th>
+                        <th>Prescription</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var appt in Model.Appointments)
+                    {
+                        <tr>
+                            <td>@appt.AppointmentId</td>
+                            <td>@(appt.Doctor?.Name ?? "N/A")</td>
+                            <td>@(appt.Disease ?? "N/A")</td>
+                            <td>@(appt.Prescription ?? "N/A")</td>
+                            <td>@appt.AppointmentDate.ToString("yyyy-MM-dd")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div class="text-center py-4">
+                <i class="fas fa-history fa-3x text-muted mb-3"></i>
+                <p class="text-muted">No treatment history available.</p>
+            </div>
+        }
+    </div>
+</div>

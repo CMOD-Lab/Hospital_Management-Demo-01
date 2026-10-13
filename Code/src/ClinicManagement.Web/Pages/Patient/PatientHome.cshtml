@@ -1,0 +1,88 @@
+@page
+@model ClinicManagement.Web.Pages.Patient.PatientHomeModel
+@{
+    ViewData["Title"] = "Patient Home";
+    Layout = "_PatientLayout";
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <h2><i class="fas fa-user-injured me-2"></i>Patient Profile</h2>
+        <hr />
+    </div>
+</div>
+
+@if (Model.Patient != null)
+{
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card shadow text-center">
+                <div class="card-body">
+                    <i class="fas fa-user-circle fa-5x text-info mb-3"></i>
+                    <h4>@Model.Patient.Name</h4>
+                    <p class="text-muted">Patient ID: @Model.Patient.PatientId</p>
+                    <span class="badge bg-info">Active Patient</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Personal Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong><i class="fas fa-phone me-2"></i>Phone:</strong> @Model.Patient.Phone</p>
+                            <p><strong><i class="fas fa-map-marker-alt me-2"></i>Address:</strong> @Model.Patient.Address</p>
+                            <p><strong><i class="fas fa-venus-mars me-2"></i>Gender:</strong> @Model.Patient.Gender</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong><i class="fas fa-birthday-cake me-2"></i>Birth Date:</strong> @Model.Patient.BirthDate.ToString("yyyy-MM-dd")</p>
+                            <p><strong><i class="fas fa-envelope me-2"></i>Email:</strong> @Model.Patient.Email</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0"><i class="fas fa-bolt me-2"></i>Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex gap-2 flex-wrap">
+                        <a href="/Patient/ViewDoctors" class="btn btn-primary">
+                            <i class="fas fa-user-md me-2"></i>View Doctors
+                        </a>
+                        <a href="/Patient/CurrentAppointment" class="btn btn-success">
+                            <i class="fas fa-calendar-check me-2"></i>Current Appointment
+                        </a>
+                        <a href="/Patient/TreatmentHistory" class="btn btn-info text-white">
+                            <i class="fas fa-history me-2"></i>Treatment History
+                        </a>
+                        <a href="/Patient/BillsHistory" class="btn btn-warning">
+                            <i class="fas fa-file-invoice me-2"></i>Bills History
+                        </a>
+                        <a href="/Patient/PatientNotifications" class="btn btn-secondary">
+                            <i class="fas fa-bell me-2"></i>Notifications
+                        </a>
+                        <a href="/Patient/PatientFeedback" class="btn btn-outline-primary">
+                            <i class="fas fa-star me-2"></i>Feedback
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="alert alert-danger">
+        <i class="fas fa-exclamation-triangle me-2"></i>There was some error retrieving patient information.
+    </div>
+}
