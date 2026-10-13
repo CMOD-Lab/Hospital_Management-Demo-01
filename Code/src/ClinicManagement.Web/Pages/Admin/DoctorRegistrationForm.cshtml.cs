@@ -78,7 +78,7 @@ public class DoctorRegistrationFormModel : PageModel
             ChargesPerVisit = ChargesPerVisit,
             Specialization = Specialization,
             Qualification = Qualification,
-            Status = true
+            Status = 1
         };
 
         var success = await _adminService.AddDoctorAsync(doctor);

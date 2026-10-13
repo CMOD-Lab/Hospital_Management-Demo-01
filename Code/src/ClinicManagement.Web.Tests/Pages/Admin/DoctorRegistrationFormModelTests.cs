@@ -197,7 +197,7 @@ namespace ClinicManagement.Web.Tests.Pages.Admin
             Assert.Equal(750, capturedDoctor.ChargesPerVisit);
             Assert.Equal("Neurology", capturedDoctor.Specialization);
             Assert.Equal("PhD", capturedDoctor.Qualification);
-            Assert.True(capturedDoctor.Status);
+            Assert.Equal(1, capturedDoctor.Status);
         }
     }
 }

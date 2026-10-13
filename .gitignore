@@ -1,2 +1,113 @@
+# Build outputs (never commit — restore with dotnet build)
+**/bin/
+**/obj/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+[Rr]elease/
+[Dd]ebug/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+out/
+artifacts/
 
-Code/.vs/Clinic Management System/v15/.suo
+# .NET
+project.lock.json
+project.fragment.lock.json
+*.vspscc
+*.vssscc
+.builds
+*.pidb
+*.svclog
+*.scc
+
+# NuGet
+*.nupkg
+*.snupkg
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+*.nuget.props
+*.nuget.targets
+
+# Legacy NuGet packages folder (ASP.NET Web Forms)
+Code/packages/
+
+# Legacy Web Forms UI/assets (not used by Code/ClinicManagement.sln)
+Code/DBProject/
+Code/Clinic Management System.sln
+
+# Test results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+*.trx
+*.coverage
+*.coveragexml
+coverage*.json
+coverage*.xml
+coverage*.info
+
+# Visual Studio / Rider / VS Code
+.vs/
+Code/.vs/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.userprefs
+.idea/
+*.DotSettings.user
+
+# ASP.NET / Razor
+ScaffoldingReadMe.txt
+**/wwwroot/dist/
+**/MvcTestingAppManifest.json
+**/staticwebassets.pack.json
+**/staticwebassets/
+**/apphost.exe
+**/sourcelink.json
+
+# Serilog / application logs
+**/logs/
+clinic-management-*.txt
+
+# OS
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Secrets & local-only config
+*.env
+*.env.*
+!.env.example
+appsettings.Local.json
+appsettings.*.Local.json
+secrets.json
+
+# Local database dumps / Docker volumes
+*.sql.backup
+pgdata/
+# Build output — all projects (src, tests, etc.)
+**/bin/
+**/obj/
+
+# Optional aliases (redundant if **/bin/ and **/obj/ are present)
+[Bb]in/
+[Oo]bj/
+
+# Configuration folders inside bin/obj (e.g. bin/Debug/net8.0)
+**/bin/[Dd]ebug/
+**/bin/[Rr]elease/
+**/obj/[Dd]ebug/
+**/obj/[Rr]elease/

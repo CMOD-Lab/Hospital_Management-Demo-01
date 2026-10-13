@@ -12,7 +12,9 @@ public interface IAppointmentRepository
     Task<IEnumerable<Appointment>> GetTodaysByDoctorAsync(int doctorId, CancellationToken cancellationToken = default);
     Task<Appointment?> GetCurrentByPatientAsync(int patientId, CancellationToken cancellationToken = default);
     Task<IEnumerable<Appointment>> GetHistoryByDoctorAsync(int doctorId, CancellationToken cancellationToken = default);
+    Task<IEnumerable<Appointment>> GetHistoryByPatientAsync(int patientId, CancellationToken cancellationToken = default);
     Task<IEnumerable<Appointment>> GetFreeSlotsByDoctorAsync(int doctorId, int patientId, CancellationToken cancellationToken = default);
+    Task BookFromFreeSlotAsync(int doctorId, int patientId, int freeSlotHour, CancellationToken cancellationToken = default);
     Task<Appointment?> GetPendingFeedbackByPatientAsync(int patientId, CancellationToken cancellationToken = default);
     Task<Appointment?> GetNotificationByPatientAsync(int patientId, CancellationToken cancellationToken = default);
     Task AddAsync(Appointment appointment, CancellationToken cancellationToken = default);

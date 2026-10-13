@@ -6,9 +6,6 @@ using Microsoft.Extensions.Logging;
 
 namespace ClinicManagement.Infrastructure.Repositories;
 
-/// <summary>
-/// EF Core implementation of the patient repository.
-/// </summary>
 public class PatientRepository : IPatientRepository
 {
     private readonly ClinicDbContext _context;
@@ -20,12 +17,25 @@ public class PatientRepository : IPatientRepository
         _logger = logger;
     }
 
+    private static void AttachLogin(Patient patient, LoginAccount login)
+    {
+        patient.Email = login.Email;
+        patient.Password = login.Password;
+    }
+
     public async Task<Patient?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
     {
         try
         {
-            return await _context.Patients.AsNoTracking()
-                .FirstOrDefaultAsync(p => p.PatientId == id && p.IsActive, cancellationToken);
+            var row = await (
+                from p in _context.Patients.AsNoTracking()
+                join l in _context.LoginAccounts.AsNoTracking() on p.PatientId equals l.LoginId
+                where p.PatientId == id
+                select new { p, l }).FirstOrDefaultAsync(cancellationToken);
+
+            if (row == null) return null;
+            AttachLogin(row.p, row.l);
+            return row.p;
         }
         catch (Exception ex)
         {
@@ -38,8 +48,15 @@ public class PatientRepository : IPatientRepository
     {
         try
         {
-            return await _context.Patients.AsNoTracking()
-                .FirstOrDefaultAsync(p => p.Email == email && p.IsActive, cancellationToken);
+            var row = await (
+                from p in _context.Patients.AsNoTracking()
+                join l in _context.LoginAccounts.AsNoTracking() on p.PatientId equals l.LoginId
+                where l.Email == email
+                select new { p, l }).FirstOrDefaultAsync(cancellationToken);
+
+            if (row == null) return null;
+            AttachLogin(row.p, row.l);
+            return row.p;
         }
         catch (Exception ex)
         {
@@ -52,9 +69,14 @@ public class PatientRepository : IPatientRepository
     {
         try
         {
-            return await _context.Patients.AsNoTracking()
-                .Where(p => p.IsActive)
-                .ToListAsync(cancellationToken);
+            var rows = await (
+                from p in _context.Patients.AsNoTracking()
+                join l in _context.LoginAccounts.AsNoTracking() on p.PatientId equals l.LoginId
+                select new { p, l }).ToListAsync(cancellationToken);
+
+            foreach (var row in rows)
+                AttachLogin(row.p, row.l);
+            return rows.Select(r => r.p);
         }
         catch (Exception ex)
         {
@@ -68,7 +90,7 @@ public class PatientRepository : IPatientRepository
         try
         {
             return await _context.Patients.AsNoTracking()
-                .Where(p => p.IsActive && p.Name.Contains(searchQuery))
+                .Where(p => p.Name.Contains(searchQuery))
                 .Select(p => new Patient { PatientId = p.PatientId, Name = p.Name, Phone = p.Phone })
                 .ToListAsync(cancellationToken);
         }
@@ -81,14 +103,27 @@ public class PatientRepository : IPatientRepository
 
     public async Task<Patient> AddAsync(Patient patient, CancellationToken cancellationToken = default)
     {
+        await using var tx = await _context.Database.BeginTransactionAsync(cancellationToken);
         try
         {
+            var login = new LoginAccount
+            {
+                Email = patient.Email,
+                Password = patient.Password,
+                Type = 1
+            };
+            _context.LoginAccounts.Add(login);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            patient.PatientId = login.LoginId;
             _context.Patients.Add(patient);
             await _context.SaveChangesAsync(cancellationToken);
+            await tx.CommitAsync(cancellationToken);
             return patient;
         }
         catch (Exception ex)
         {
+            await tx.RollbackAsync(cancellationToken);
             _logger.LogError(ex, "Error adding patient: {Name}", patient.Name);
             throw;
         }
@@ -112,7 +147,7 @@ public class PatientRepository : IPatientRepository
     {
         try
         {
-            return await _context.Patients.AnyAsync(p => p.PatientId == id && p.IsActive, cancellationToken);
+            return await _context.Patients.AnyAsync(p => p.PatientId == id, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -125,7 +160,7 @@ public class PatientRepository : IPatientRepository
     {
         try
         {
-            return await _context.Patients.AnyAsync(p => p.Email == email, cancellationToken);
+            return await _context.LoginAccounts.AnyAsync(l => l.Email == email, cancellationToken);
         }
         catch (Exception ex)
         {

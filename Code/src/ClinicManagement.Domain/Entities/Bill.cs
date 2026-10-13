@@ -1,7 +1,7 @@
 namespace ClinicManagement.Domain.Entities;
 
 /// <summary>
-/// Represents a bill for a patient appointment.
+/// Bill view model derived from completed appointments (no separate bill table).
 /// </summary>
 public class Bill
 {
@@ -12,7 +12,6 @@ public class Bill
     public DateTime BillDate { get; set; }
     public bool IsPaid { get; set; }
 
-    // Navigation properties
     public Patient? Patient { get; set; }
     public Appointment? Appointment { get; set; }
 }

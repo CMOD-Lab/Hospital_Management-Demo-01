@@ -6,11 +6,13 @@ using Microsoft.Extensions.Logging;
 
 namespace ClinicManagement.Infrastructure.Repositories;
 
-/// <summary>
-/// EF Core implementation of the appointment repository.
-/// </summary>
 public class AppointmentRepository : IAppointmentRepository
 {
+    private const int StatusApproved = 1;
+    private const int StatusPending = 2;
+    private const int StatusCompleted = 3;
+    private const int StatusRejected = 4;
+
     private readonly ClinicDbContext _context;
     private readonly ILogger<AppointmentRepository> _logger;
 
@@ -24,10 +26,12 @@ public class AppointmentRepository : IAppointmentRepository
     {
         try
         {
-            return await _context.Appointments.AsNoTracking()
+            var appointment = await _context.Appointments.AsNoTracking()
                 .Include(a => a.Doctor)
                 .Include(a => a.Patient)
                 .FirstOrDefaultAsync(a => a.AppointmentId == id, cancellationToken);
+            AppointmentFormatting.ApplyTimings(appointment);
+            return appointment;
         }
         catch (Exception ex)
         {
@@ -40,10 +44,15 @@ public class AppointmentRepository : IAppointmentRepository
     {
         try
         {
-            return await _context.Appointments.AsNoTracking()
+            var today = DateTime.Today;
+            var list = await _context.Appointments.AsNoTracking()
                 .Include(a => a.Patient)
-                .Where(a => a.DoctorId == doctorId && !a.IsApproved && !a.IsCompleted)
+                .Where(a => a.DoctorId == doctorId
+                            && a.AppointmentStatus == StatusPending
+                            && a.AppointmentDate.Date == today)
                 .ToListAsync(cancellationToken);
+            AppointmentFormatting.ApplyTimings(list);
+            return list;
         }
         catch (Exception ex)
         {
@@ -57,11 +66,14 @@ public class AppointmentRepository : IAppointmentRepository
         try
         {
             var today = DateTime.Today;
-            return await _context.Appointments.AsNoTracking()
+            var list = await _context.Appointments.AsNoTracking()
                 .Include(a => a.Patient)
-                .Where(a => a.DoctorId == doctorId && a.IsApproved && !a.IsCompleted
+                .Where(a => a.DoctorId == doctorId
+                            && a.AppointmentStatus == StatusApproved
                             && a.AppointmentDate.Date == today)
                 .ToListAsync(cancellationToken);
+            AppointmentFormatting.ApplyTimings(list);
+            return list;
         }
         catch (Exception ex)
         {
@@ -74,9 +86,12 @@ public class AppointmentRepository : IAppointmentRepository
     {
         try
         {
-            return await _context.Appointments.AsNoTracking()
+            var appointment = await _context.Appointments.AsNoTracking()
                 .Include(a => a.Doctor)
-                .FirstOrDefaultAsync(a => a.PatientId == patientId && a.IsApproved && !a.IsCompleted, cancellationToken);
+                .FirstOrDefaultAsync(a => a.PatientId == patientId
+                    && (a.AppointmentStatus == StatusApproved || a.AppointmentStatus == StatusPending), cancellationToken);
+            AppointmentFormatting.ApplyTimings(appointment);
+            return appointment;
         }
         catch (Exception ex)
         {
@@ -89,10 +104,12 @@ public class AppointmentRepository : IAppointmentRepository
     {
         try
         {
-            return await _context.Appointments.AsNoTracking()
+            var list = await _context.Appointments.AsNoTracking()
                 .Include(a => a.Patient)
-                .Where(a => a.DoctorId == doctorId && a.IsCompleted)
+                .Where(a => a.DoctorId == doctorId && a.AppointmentStatus == StatusCompleted)
                 .ToListAsync(cancellationToken);
+            AppointmentFormatting.ApplyTimings(list);
+            return list;
         }
         catch (Exception ex)
         {
@@ -101,14 +118,45 @@ public class AppointmentRepository : IAppointmentRepository
         }
     }
 
+    public async Task<IEnumerable<Appointment>> GetHistoryByPatientAsync(int patientId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var list = await _context.Appointments.AsNoTracking()
+                .Include(a => a.Doctor)
+                .Where(a => a.PatientId == patientId && a.AppointmentStatus == StatusCompleted)
+                .ToListAsync(cancellationToken);
+            AppointmentFormatting.ApplyTimings(list);
+            return list;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving treatment history for patient ID: {Id}", patientId);
+            return Enumerable.Empty<Appointment>();
+        }
+    }
+
     public async Task<IEnumerable<Appointment>> GetFreeSlotsByDoctorAsync(int doctorId, int patientId, CancellationToken cancellationToken = default)
     {
         try
         {
-            // Return appointments that are not yet booked (free slots)
-            return await _context.Appointments.AsNoTracking()
-                .Where(a => a.DoctorId == doctorId && !a.IsApproved && !a.IsCompleted)
+            var today = DateTime.Today;
+            var bookedHours = await _context.Appointments.AsNoTracking()
+                .Where(a => a.DoctorId == doctorId && a.AppointmentDate.Date == today)
+                .Select(a => a.AppointmentDate.Hour)
                 .ToListAsync(cancellationToken);
+
+            var freeSlots = Enumerable.Range(9, 9)
+                .Where(h => !bookedHours.Contains(h))
+                .Select(h => new Appointment
+                {
+                    AppointmentId = h,
+                    DoctorId = doctorId,
+                    Timings = AppointmentFormatting.FormatFreeSlotLabel(h)
+                })
+                .ToList();
+
+            return freeSlots;
         }
         catch (Exception ex)
         {
@@ -121,9 +169,13 @@ public class AppointmentRepository : IAppointmentRepository
     {
         try
         {
-            return await _context.Appointments.AsNoTracking()
+            var appointment = await _context.Appointments.AsNoTracking()
                 .Include(a => a.Doctor)
-                .FirstOrDefaultAsync(a => a.PatientId == patientId && a.IsCompleted && !a.FeedbackGiven, cancellationToken);
+                .FirstOrDefaultAsync(a => a.PatientId == patientId
+                    && a.AppointmentStatus == StatusCompleted
+                    && a.FeedbackStatus == 2, cancellationToken);
+            AppointmentFormatting.ApplyTimings(appointment);
+            return appointment;
         }
         catch (Exception ex)
         {
@@ -136,9 +188,18 @@ public class AppointmentRepository : IAppointmentRepository
     {
         try
         {
-            return await _context.Appointments.AsNoTracking()
+            var appointment = await _context.Appointments
                 .Include(a => a.Doctor)
-                .FirstOrDefaultAsync(a => a.PatientId == patientId && a.IsApproved && !a.IsCompleted, cancellationToken);
+                .FirstOrDefaultAsync(a => a.PatientId == patientId && a.PatientNotification == 2, cancellationToken);
+
+            if (appointment != null)
+            {
+                appointment.PatientNotification = 1;
+                await _context.SaveChangesAsync(cancellationToken);
+            }
+
+            AppointmentFormatting.ApplyTimings(appointment);
+            return appointment;
         }
         catch (Exception ex)
         {
@@ -161,6 +222,27 @@ public class AppointmentRepository : IAppointmentRepository
         }
     }
 
+    public async Task BookFromFreeSlotAsync(int doctorId, int patientId, int freeSlotHour, CancellationToken cancellationToken = default)
+    {
+        var slot = freeSlotHour;
+        if (slot < 9)
+            slot += 12;
+
+        var appointmentDate = DateTime.Today.AddHours(slot);
+
+        var appointment = new Appointment
+        {
+            DoctorId = doctorId,
+            PatientId = patientId,
+            AppointmentDate = appointmentDate,
+            AppointmentStatus = StatusPending,
+            DoctorNotification = 2,
+            PatientNotification = 1
+        };
+
+        await AddAsync(appointment, cancellationToken);
+    }
+
     public async Task ApproveAsync(int appointmentId, CancellationToken cancellationToken = default)
     {
         try
@@ -168,7 +250,8 @@ public class AppointmentRepository : IAppointmentRepository
             var appointment = await _context.Appointments.FindAsync(new object[] { appointmentId }, cancellationToken);
             if (appointment != null)
             {
-                appointment.IsApproved = true;
+                appointment.AppointmentStatus = StatusApproved;
+                appointment.PatientNotification = 2;
                 await _context.SaveChangesAsync(cancellationToken);
             }
         }
@@ -186,13 +269,14 @@ public class AppointmentRepository : IAppointmentRepository
             var appointment = await _context.Appointments.FindAsync(new object[] { appointmentId }, cancellationToken);
             if (appointment != null)
             {
-                _context.Appointments.Remove(appointment);
+                appointment.AppointmentStatus = StatusRejected;
+                appointment.PatientNotification = 2;
                 await _context.SaveChangesAsync(cancellationToken);
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error deleting appointment ID: {Id}", appointmentId);
+            _logger.LogError(ex, "Error rejecting appointment ID: {Id}", appointmentId);
             throw;
         }
     }
@@ -207,6 +291,9 @@ public class AppointmentRepository : IAppointmentRepository
                 appointment.Disease = disease;
                 appointment.Progress = progress;
                 appointment.Prescription = prescription;
+                appointment.AppointmentStatus = StatusCompleted;
+                appointment.PatientNotification = 2;
+                appointment.FeedbackStatus = 2;
                 await _context.SaveChangesAsync(cancellationToken);
             }
         }
@@ -222,10 +309,15 @@ public class AppointmentRepository : IAppointmentRepository
         try
         {
             var appointment = await _context.Appointments.FindAsync(new object[] { appointmentId }, cancellationToken);
-            if (appointment != null)
+            var doctor = await _context.Doctors.FindAsync(new object[] { doctorId }, cancellationToken);
+            if (appointment != null && doctor != null)
             {
-                appointment.IsPaid = true;
-                appointment.IsCompleted = true;
+                appointment.BillStatus = "Paid";
+                appointment.AppointmentStatus = StatusCompleted;
+                appointment.PatientNotification = 2;
+                appointment.BillAmount = doctor.ChargesPerVisit;
+                appointment.FeedbackStatus = 2;
+                doctor.PatientsTreated += 1;
                 await _context.SaveChangesAsync(cancellationToken);
             }
         }
@@ -241,10 +333,15 @@ public class AppointmentRepository : IAppointmentRepository
         try
         {
             var appointment = await _context.Appointments.FindAsync(new object[] { appointmentId }, cancellationToken);
-            if (appointment != null)
+            var doctor = await _context.Doctors.FindAsync(new object[] { doctorId }, cancellationToken);
+            if (appointment != null && doctor != null)
             {
-                appointment.IsPaid = false;
-                appointment.IsCompleted = true;
+                appointment.BillStatus = "Unpaid";
+                appointment.AppointmentStatus = StatusCompleted;
+                appointment.PatientNotification = 2;
+                appointment.BillAmount = doctor.ChargesPerVisit;
+                appointment.FeedbackStatus = 2;
+                doctor.PatientsTreated += 1;
                 await _context.SaveChangesAsync(cancellationToken);
             }
         }
@@ -260,11 +357,18 @@ public class AppointmentRepository : IAppointmentRepository
         try
         {
             var appointment = await _context.Appointments.FindAsync(new object[] { appointmentId }, cancellationToken);
-            if (appointment != null)
+            if (appointment == null)
+                return;
+
+            var doctor = await _context.Doctors.FindAsync(new object[] { appointment.DoctorId }, cancellationToken);
+            if (doctor != null && doctor.PatientsTreated > 0)
             {
-                appointment.FeedbackGiven = true;
-                await _context.SaveChangesAsync(cancellationToken);
+                var avg = doctor.ReputeIndex * (doctor.PatientsTreated - 1) / doctor.PatientsTreated;
+                doctor.ReputeIndex = avg;
             }
+
+            appointment.FeedbackStatus = 1;
+            await _context.SaveChangesAsync(cancellationToken);
         }
         catch (Exception ex)
         {

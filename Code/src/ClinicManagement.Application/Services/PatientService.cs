@@ -93,8 +93,7 @@ public class PatientService : IPatientService
         {
             _logger.LogInformation("Retrieving treatment history for patient ID: {Id}", patientId);
             // Return completed appointments as treatment history
-            var appointments = await _appointmentRepository.GetHistoryByDoctorAsync(patientId, cancellationToken);
-            return appointments;
+            return await _appointmentRepository.GetHistoryByPatientAsync(patientId, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -178,18 +177,7 @@ public class PatientService : IPatientService
         {
             _logger.LogInformation("Booking appointment for patient ID: {PatientId} with doctor ID: {DoctorId}", patientId, doctorId);
 
-            var appointment = new Appointment
-            {
-                DoctorId = doctorId,
-                PatientId = patientId,
-                IsApproved = false,
-                IsCompleted = false,
-                IsPaid = false,
-                FeedbackGiven = false,
-                AppointmentDate = DateTime.Now
-            };
-
-            await _appointmentRepository.AddAsync(appointment, cancellationToken);
+            await _appointmentRepository.BookFromFreeSlotAsync(doctorId, patientId, freeSlotId, cancellationToken);
             return (true, "Appointment request sent successfully!");
         }
         catch (Exception ex)

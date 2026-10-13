@@ -6,9 +6,6 @@ using Microsoft.Extensions.Logging;
 
 namespace ClinicManagement.Infrastructure.Repositories;
 
-/// <summary>
-/// EF Core implementation of the bill repository.
-/// </summary>
 public class BillRepository : IBillRepository
 {
     private readonly ClinicDbContext _context;
@@ -24,9 +21,19 @@ public class BillRepository : IBillRepository
     {
         try
         {
-            return await _context.Bills.AsNoTracking()
-                .Include(b => b.Appointment)
-                .Where(b => b.PatientId == patientId)
+            return await _context.Appointments.AsNoTracking()
+                .Include(a => a.Doctor)
+                .Where(a => a.PatientId == patientId && a.AppointmentStatus == 3)
+                .Select(a => new Bill
+                {
+                    BillId = a.AppointmentId,
+                    AppointmentId = a.AppointmentId,
+                    PatientId = a.PatientId,
+                    Amount = (decimal)(a.BillAmount ?? 0),
+                    BillDate = a.AppointmentDate,
+                    IsPaid = a.BillStatus != null && a.BillStatus.ToLower() == "paid",
+                    Appointment = a
+                })
                 .ToListAsync(cancellationToken);
         }
         catch (Exception ex)
@@ -40,10 +47,21 @@ public class BillRepository : IBillRepository
     {
         try
         {
-            return await _context.Bills.AsNoTracking()
-                .Include(b => b.Appointment)
-                .Include(b => b.Patient)
-                .Where(b => b.Appointment != null && b.Appointment.DoctorId == doctorId && !b.IsPaid)
+            return await _context.Appointments.AsNoTracking()
+                .Include(a => a.Patient)
+                .Where(a => a.DoctorId == doctorId
+                            && a.AppointmentStatus == 3
+                            && (a.BillStatus == null || a.BillStatus.ToLower() != "paid"))
+                .Select(a => new Bill
+                {
+                    BillId = a.AppointmentId,
+                    AppointmentId = a.AppointmentId,
+                    PatientId = a.PatientId,
+                    Amount = (decimal)(a.BillAmount ?? 0),
+                    BillDate = a.AppointmentDate,
+                    IsPaid = false,
+                    Appointment = a
+                })
                 .ToListAsync(cancellationToken);
         }
         catch (Exception ex)
@@ -54,9 +72,6 @@ public class BillRepository : IBillRepository
     }
 }
 
-/// <summary>
-/// EF Core implementation of the staff repository.
-/// </summary>
 public class StaffRepository : IStaffRepository
 {
     private readonly ClinicDbContext _context;
@@ -73,7 +88,7 @@ public class StaffRepository : IStaffRepository
         try
         {
             return await _context.OtherStaff.AsNoTracking()
-                .FirstOrDefaultAsync(s => s.StaffId == id && s.IsActive, cancellationToken);
+                .FirstOrDefaultAsync(s => s.StaffId == id, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -86,9 +101,7 @@ public class StaffRepository : IStaffRepository
     {
         try
         {
-            return await _context.OtherStaff.AsNoTracking()
-                .Where(s => s.IsActive)
-                .ToListAsync(cancellationToken);
+            return await _context.OtherStaff.AsNoTracking().ToListAsync(cancellationToken);
         }
         catch (Exception ex)
         {
@@ -102,7 +115,7 @@ public class StaffRepository : IStaffRepository
         try
         {
             return await _context.OtherStaff.AsNoTracking()
-                .Where(s => s.IsActive && s.Name.Contains(searchQuery))
+                .Where(s => s.Name.Contains(searchQuery))
                 .ToListAsync(cancellationToken);
         }
         catch (Exception ex)
@@ -133,21 +146,18 @@ public class StaffRepository : IStaffRepository
             var staff = await _context.OtherStaff.FindAsync(new object[] { id }, cancellationToken);
             if (staff != null)
             {
-                staff.IsActive = false;
+                _context.OtherStaff.Remove(staff);
                 await _context.SaveChangesAsync(cancellationToken);
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error deactivating staff ID: {Id}", id);
+            _logger.LogError(ex, "Error deleting staff ID: {Id}", id);
             throw;
         }
     }
 }
 
-/// <summary>
-/// EF Core implementation of the department repository.
-/// </summary>
 public class DepartmentRepository : IDepartmentRepository
 {
     private readonly ClinicDbContext _context;

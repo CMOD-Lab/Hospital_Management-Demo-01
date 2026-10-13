@@ -27,11 +27,11 @@ public static class ServiceCollectionExtensions
                         maxRetryCount: 3,
                         maxRetryDelay: TimeSpan.FromSeconds(30),
                         errorCodesToAdd: null);
-                    npgsqlOptions.MigrationsHistoryTable("__ef_migrations_history", "public");
-                })
-            .UseSnakeCaseNamingConvention());
+                    npgsqlOptions.MigrationsHistoryTable("__ef_migrations_history", "dbo");
+                }));
 
         // Register repositories
+        services.AddScoped<ILoginRepository, LoginRepository>();
         services.AddScoped<IPatientRepository, PatientRepository>();
         services.AddScoped<IDoctorRepository, DoctorRepository>();
         services.AddScoped<IAppointmentRepository, AppointmentRepository>();

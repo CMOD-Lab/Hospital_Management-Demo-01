@@ -63,7 +63,7 @@ try
         return Task.CompletedTask;
     });
 
-    Log.Information("Clinic Management System starting up...");
+    Log.Information("MedicX 4 Health Care starting up...");
     app.Run();
 }
 catch (Exception ex)
